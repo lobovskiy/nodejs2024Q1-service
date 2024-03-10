@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ArtistEntity } from './artist.model';
 import { CreateArtistDto } from './dto/create.dto';
 import { UpdateArtistDto } from './dto/update.dto';
+import { getCollectionEntityIndexById } from '../app.utils';
 
 @Injectable()
 export class ArtistService {
@@ -12,7 +13,7 @@ export class ArtistService {
   }
 
   public getArtist(id: string) {
-    const index = this.getArtistIndexByArtistId(id);
+    const index = getCollectionEntityIndexById(this.artists, id, 'Artist');
 
     return this.artists[index];
   }
@@ -26,7 +27,7 @@ export class ArtistService {
   }
 
   public updateArtist(id: string, dto: UpdateArtistDto) {
-    const index = this.getArtistIndexByArtistId(id);
+    const index = getCollectionEntityIndexById(this.artists, id, 'Artist');
 
     this.artists[index] = { ...this.artists[index], ...dto };
 
@@ -39,15 +40,5 @@ export class ArtistService {
     this.artists = this.artists.filter(
       (artist) => artist.id !== deletingArtist.id,
     );
-  }
-
-  private getArtistIndexByArtistId(id: string) {
-    const artistIndex = this.artists.findIndex((artist) => artist.id === id);
-
-    if (artistIndex < 0) {
-      throw new NotFoundException(`Artist ${id} not found`);
-    }
-
-    return artistIndex;
   }
 }

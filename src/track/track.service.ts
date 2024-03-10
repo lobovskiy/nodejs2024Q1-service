@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   DTO_ALBUM_ID_FIELD,
   DTO_ARTIST_ID_FIELD,
@@ -6,7 +6,7 @@ import {
 } from './track.model';
 import { CreateTrackDto } from './dto/create.dto';
 import { UpdateTrackDto } from './dto/update.dto';
-import { validateUuid } from '../app.utils';
+import { getCollectionEntityIndexById, validateUuid } from '../app.utils';
 
 @Injectable()
 export class TrackService {
@@ -17,7 +17,7 @@ export class TrackService {
   }
 
   public getTrack(id: string) {
-    const index = this.getTrackIndexByTrackId(id);
+    const index = getCollectionEntityIndexById(this.tracks, id, 'Track');
 
     return this.tracks[index];
   }
@@ -31,7 +31,7 @@ export class TrackService {
   }
 
   public updateTrack(id: string, dto: UpdateTrackDto) {
-    const index = this.getTrackIndexByTrackId(id);
+    const index = getCollectionEntityIndexById(this.tracks, id, 'Track');
 
     Object.keys(dto).forEach((key) => {
       if (key === DTO_ARTIST_ID_FIELD || key === DTO_ALBUM_ID_FIELD) {
@@ -56,15 +56,5 @@ export class TrackService {
         track[DTO_ALBUM_ID_FIELD] = null;
       }
     });
-  }
-
-  private getTrackIndexByTrackId(id: string) {
-    const trackIndex = this.tracks.findIndex((track) => track.id === id);
-
-    if (trackIndex < 0) {
-      throw new NotFoundException(`Track ${id} not found`);
-    }
-
-    return trackIndex;
   }
 }
