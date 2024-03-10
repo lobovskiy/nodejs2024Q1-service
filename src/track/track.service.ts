@@ -1,5 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TrackEntity } from './track.model';
+import {
+  DTO_ALBUM_ID_FIELD,
+  DTO_ARTIST_ID_FIELD,
+  TrackEntity,
+} from './track.model';
 import { CreateTrackDto } from './dto/create.dto';
 import { UpdateTrackDto } from './dto/update.dto';
 import { validateUuid } from '../app.utils';
@@ -28,10 +32,9 @@ export class TrackService {
 
   public updateTrack(id: string, dto: UpdateTrackDto) {
     const index = this.getTrackIndexByTrackId(id);
-    const DTO_UUID_KEYS = ['artistId', 'albumId'];
 
     Object.keys(dto).forEach((key) => {
-      if (DTO_UUID_KEYS.includes(key)) {
+      if (key === DTO_ARTIST_ID_FIELD || key === DTO_ALBUM_ID_FIELD) {
         validateUuid(dto[key], key);
       }
 
@@ -45,6 +48,14 @@ export class TrackService {
     const deletingTrack = this.getTrack(id);
 
     this.tracks = this.tracks.filter((track) => track.id !== deletingTrack.id);
+  }
+
+  public deleteAlbumIdFromTracks(albumId: string) {
+    this.tracks.forEach((track) => {
+      if (track[DTO_ALBUM_ID_FIELD] === albumId) {
+        track[DTO_ALBUM_ID_FIELD] = null;
+      }
+    });
   }
 
   private getTrackIndexByTrackId(id: string) {
