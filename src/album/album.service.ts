@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ArtistService } from 'src/artist/artist.service';
-import { TrackService } from 'src/track/track.service';
+import { ArtistService } from '../artist/artist.service';
+import { TrackService } from '../track/track.service';
 import { AlbumEntity, DTO_ARTIST_ID_FIELD } from './album.model';
 import { CreateAlbumDto } from './dto/create.dto';
 import { UpdateAlbumDto } from './dto/update.dto';
@@ -75,5 +75,13 @@ export class AlbumService {
 
     this.albums = this.albums.filter((album) => album.id !== deletingAlbum.id);
     this.trackService.deleteAlbumIdFromTracks(id);
+  }
+
+  public deleteArtistIdFromAlbums(artistId: string) {
+    this.albums.forEach((album) => {
+      if (album[DTO_ARTIST_ID_FIELD] === artistId) {
+        album[DTO_ARTIST_ID_FIELD] = null;
+      }
+    });
   }
 }

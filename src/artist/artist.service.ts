@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { AlbumService } from '../album/album.service';
+import { TrackService } from '../track/track.service';
 import { ArtistEntity } from './artist.model';
 import { CreateArtistDto } from './dto/create.dto';
 import { UpdateArtistDto } from './dto/update.dto';
@@ -7,6 +9,13 @@ import { getCollectionEntityIndexById } from '../app.utils';
 @Injectable()
 export class ArtistService {
   private artists: ArtistEntity[] = [];
+
+  constructor(
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
+  ) {}
 
   public getAllArtists() {
     return this.artists;
@@ -40,5 +49,7 @@ export class ArtistService {
     this.artists = this.artists.filter(
       (artist) => artist.id !== deletingArtist.id,
     );
+    this.albumService.deleteArtistIdFromAlbums(id);
+    this.trackService.deleteArtistIdFromTracks(id);
   }
 }

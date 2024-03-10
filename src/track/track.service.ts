@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { ArtistService } from '../artist/artist.service';
+import { AlbumService } from '../album/album.service';
 import {
   DTO_ALBUM_ID_FIELD,
   DTO_ARTIST_ID_FIELD,
@@ -6,11 +8,22 @@ import {
 } from './track.model';
 import { CreateTrackDto } from './dto/create.dto';
 import { UpdateTrackDto } from './dto/update.dto';
-import { getCollectionEntityIndexById, validateUuid } from '../app.utils';
+import {
+  getCollectionEntityIndexById,
+  validateCollectionEntity,
+  validateUuid,
+} from '../app.utils';
 
 @Injectable()
 export class TrackService {
   private tracks: TrackEntity[] = [];
+
+  constructor(
+    @Inject(forwardRef(() => ArtistService))
+    private artistService: ArtistService,
+    @Inject(forwardRef(() => AlbumService))
+    private albumService: AlbumService,
+  ) {}
 
   public getAllTracks() {
     return this.tracks;
@@ -23,6 +36,27 @@ export class TrackService {
   }
 
   public createTrack(dto: CreateTrackDto) {
+    const artistId = dto[DTO_ARTIST_ID_FIELD];
+    const albumId = dto[DTO_ALBUM_ID_FIELD];
+
+    if (artistId) {
+      validateCollectionEntity(
+        this.artistService.getAllArtists(),
+        artistId,
+        'Artists',
+        DTO_ARTIST_ID_FIELD,
+      );
+    }
+
+    if (albumId) {
+      validateCollectionEntity(
+        this.albumService.getAllAlbums(),
+        albumId,
+        'Albums',
+        DTO_ALBUM_ID_FIELD,
+      );
+    }
+
     const track = new TrackEntity(dto);
 
     this.tracks.push(track);
@@ -54,6 +88,14 @@ export class TrackService {
     this.tracks.forEach((track) => {
       if (track[DTO_ALBUM_ID_FIELD] === albumId) {
         track[DTO_ALBUM_ID_FIELD] = null;
+      }
+    });
+  }
+
+  public deleteArtistIdFromTracks(artistId: string) {
+    this.tracks.forEach((track) => {
+      if (track[DTO_ARTIST_ID_FIELD] === artistId) {
+        track[DTO_ARTIST_ID_FIELD] = null;
       }
     });
   }
