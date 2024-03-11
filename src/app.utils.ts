@@ -2,7 +2,11 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as uuid from 'uuid';
 import { OpenAPIObject } from '@nestjs/swagger';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 
 export async function getYamlDocument(
   documentPath: string,
@@ -45,22 +49,20 @@ export function validateUuid(id: string, fieldReferredToId?: string) {
 export function validateCollectionEntity(
   collection: any[],
   entityId: string,
-  collectionName?: string,
+  collectionName: string,
   fieldReferredToId?: string,
 ) {
   validateUuid(entityId, fieldReferredToId);
 
-  let errorMessage = fieldReferredToId
-    ? `Item with id ${entityId} in ${fieldReferredToId} not found`
-    : `Item with id ${entityId} not found`;
-
-  if (collectionName) {
-    errorMessage += ` in ${collectionName}`;
-  }
-
   const entity = collection.find((entity) => entity.id === entityId);
 
   if (!entity) {
-    throw new NotFoundException(errorMessage);
+    throw fieldReferredToId
+      ? new NotFoundException(
+          `Item with id ${entityId} in ${fieldReferredToId} not found in ${collectionName}`,
+        )
+      : new UnprocessableEntityException(
+          `Item with id ${entityId} is unprocessable within ${collectionName}`,
+        );
   }
 }
