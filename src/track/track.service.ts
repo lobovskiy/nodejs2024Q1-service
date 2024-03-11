@@ -68,7 +68,10 @@ export class TrackService {
     const index = getCollectionEntityIndexById(this.tracks, id, 'Track');
 
     Object.keys(dto).forEach((key) => {
-      if (key === DTO_ARTIST_ID_FIELD || key === DTO_ALBUM_ID_FIELD) {
+      if (
+        (key === DTO_ARTIST_ID_FIELD || key === DTO_ALBUM_ID_FIELD) &&
+        dto[key] !== null
+      ) {
         validateUuid(dto[key], key);
       }
 

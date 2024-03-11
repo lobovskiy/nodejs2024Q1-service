@@ -53,7 +53,7 @@ export class AlbumService {
     const index = getCollectionEntityIndexById(this.albums, id, 'Album');
 
     Object.keys(dto).forEach((key) => {
-      if (key === DTO_ARTIST_ID_FIELD) {
+      if (key === DTO_ARTIST_ID_FIELD && dto[key] !== null) {
         const artistId = dto[key];
 
         validateCollectionEntity(
