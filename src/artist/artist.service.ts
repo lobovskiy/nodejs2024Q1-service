@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
+import { FavsService } from '../favs/favs.service';
 import { ArtistEntity } from './artist.model';
 import { CreateArtistDto } from './dto/create.dto';
 import { UpdateArtistDto } from './dto/update.dto';
@@ -15,16 +16,26 @@ export class ArtistService {
     private albumService: AlbumService,
     @Inject(forwardRef(() => TrackService))
     private trackService: TrackService,
+    @Inject(forwardRef(() => FavsService))
+    private favsService: FavsService,
   ) {}
 
   public getAllArtists() {
     return this.artists;
   }
 
-  public getArtist(id: string) {
-    const index = getCollectionEntityIndexById(this.artists, id, 'Artist');
+  public getArtist(id: string): ArtistEntity;
+  public getArtist(id: string[]): ArtistEntity[];
+  public getArtist(id: string | string[]) {
+    if (typeof id === 'string') {
+      const index = getCollectionEntityIndexById(this.artists, id, 'Artist');
 
-    return this.artists[index];
+      return this.artists[index];
+    }
+
+    if (Array.isArray(id)) {
+      return this.artists.filter((artist) => id.includes(artist.id));
+    }
   }
 
   public createArtist(dto: CreateArtistDto) {
@@ -51,5 +62,6 @@ export class ArtistService {
     );
     this.albumService.deleteArtistIdFromAlbums(id);
     this.trackService.deleteArtistIdFromTracks(id);
+    this.favsService.deleteArtistFromFavs(id);
   }
 }
