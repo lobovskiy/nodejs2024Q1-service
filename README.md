@@ -14,6 +14,10 @@ Also, you can add them all to the favorites list and delete them from it.
 git clone https://github.com/lobovskiy/nodejs2024Q1-service.git
 ```
 
+## Setup environment config 
+
+Change the file name `.env.example` to `.env`
+
 ## Installing NPM modules
 
 ```
