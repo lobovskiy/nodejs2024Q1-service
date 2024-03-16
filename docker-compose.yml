@@ -11,6 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     build:
       dockerfile: ./db.Dockerfile
+    image: hl_database
     restart: always
     volumes:
       - db:/var/lib/postgresql/data
@@ -23,6 +24,7 @@ services:
       - ${PORT}:${PORT}
     build:
       dockerfile: ./hl.Dockerfile
+    image: home_library
     env_file: .env
     restart: always
     depends_on:
