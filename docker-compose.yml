@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: hl_database
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    build:
+      dockerfile: ./db.Dockerfile
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - hl_network
+
+volumes:
+  db:
+    name: hl_database_volume
+
+networks:
+  hl_network:
+    external: false
+    driver: bridge
