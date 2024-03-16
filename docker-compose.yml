@@ -17,9 +17,27 @@ services:
     networks:
       - hl_network
 
+  hl:
+    container_name: home_library
+    ports:
+      - ${PORT}:${PORT}
+    build:
+      dockerfile: ./hl.Dockerfile
+    env_file: .env
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/home_library
+      - node_modules:/usr/src/home_library/node_modules
+    networks:
+      - hl_network
+
 volumes:
   db:
     name: hl_database_volume
+  node_modules:
+    name: hl_node_modules
 
 networks:
   hl_network:
