@@ -21,7 +21,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "docker": "docker-compose up",
-    "docker:audit": "docker scout recommendations home_library && docker scout recommendations hl_database && docker exec home_library npm audit"
+    "docker:audit": "docker scout recommendations home_library && docker scout recommendations hl_database && docker exec home_library npm audit",
+    "start:db": "prisma migrate deploy && npm start"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
