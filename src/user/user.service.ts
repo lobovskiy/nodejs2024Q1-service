@@ -23,12 +23,9 @@ export class UserService {
   }
 
   public createUser(dto: CreateUserDto) {
+    const { login, password } = dto;
     return this.prisma.user.create({
-      data: {
-        login: dto.login,
-        password: dto.password,
-        version: 1,
-      },
+      data: { login, password, version: 1 },
       select: this.prisma.exclude('User', ['password']),
     });
   }

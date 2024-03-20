@@ -85,7 +85,6 @@ export class AlbumService {
     const deletingAlbum = this.getAlbum(id);
 
     this.albums = this.albums.filter((album) => album.id !== deletingAlbum.id);
-    this.trackService.deleteAlbumIdFromTracks(id);
     this.favsService.deleteAlbumFromFavs(id);
   }
 

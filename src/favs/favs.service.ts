@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ArtistService } from '../artist/artist.service';
 import { AlbumService } from '../album/album.service';
-import { TrackService } from '../track/track.service';
 import { IFavorites } from './favs.model';
 import { validateCollectionEntity } from '../app.utils';
 import { getFavsResponseMessage } from './favs.utils';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class FavsService {
@@ -19,15 +19,14 @@ export class FavsService {
     private artistService: ArtistService,
     @Inject(forwardRef(() => AlbumService))
     private albumService: AlbumService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
+    private prisma: PrismaService,
   ) {}
 
   public getAllFavs() {
     return {
       artists: this.artistService.getArtist(this.favorites.artists),
       albums: this.albumService.getAlbum(this.favorites.albums),
-      tracks: this.trackService.getTrack(this.favorites.tracks),
+      tracks: this.prisma.track.findMany({ select: { favorite: true } }),
     };
   }
 
@@ -68,15 +67,10 @@ export class FavsService {
   }
 
   public addTrackToFavs(trackId: string) {
-    validateCollectionEntity(
-      this.trackService.getAllTracks(),
-      trackId,
-      'Tracks',
-    );
-
-    this.favorites.tracks.push(trackId);
-
-    return getFavsResponseMessage('Track', trackId);
+    return this.prisma.track.update({
+      where: { id: trackId },
+      data: { favorite: true },
+    });
   }
 
   public deleteTrackFromFavs(trackId: string) {

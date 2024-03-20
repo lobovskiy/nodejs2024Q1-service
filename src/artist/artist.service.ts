@@ -61,7 +61,6 @@ export class ArtistService {
       (artist) => artist.id !== deletingArtist.id,
     );
     this.albumService.deleteArtistIdFromAlbums(id);
-    this.trackService.deleteArtistIdFromTracks(id);
     this.favsService.deleteArtistFromFavs(id);
   }
 }
