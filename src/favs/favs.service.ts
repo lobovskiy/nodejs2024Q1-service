@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
@@ -22,7 +22,15 @@ export class FavsService {
     };
   }
 
-  public addArtistToFavs(artistId: string) {
+  public async addArtistToFavs(artistId: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { id: artistId },
+    });
+
+    if (!artist) {
+      this.throwUnprocessableEntityException('Artist', artistId);
+    }
+
     return this.prisma.artist.update({
       where: { id: artistId },
       data: { favorite: true },
@@ -36,7 +44,15 @@ export class FavsService {
     });
   }
 
-  public addAlbumToFavs(albumId: string) {
+  public async addAlbumToFavs(albumId: string) {
+    const album = await this.prisma.album.findUnique({
+      where: { id: albumId },
+    });
+
+    if (!album) {
+      this.throwUnprocessableEntityException('Album', albumId);
+    }
+
     return this.prisma.album.update({
       where: { id: albumId },
       data: { favorite: true },
@@ -50,7 +66,15 @@ export class FavsService {
     });
   }
 
-  public addTrackToFavs(trackId: string) {
+  public async addTrackToFavs(trackId: string) {
+    const album = await this.prisma.track.findUnique({
+      where: { id: trackId },
+    });
+
+    if (!album) {
+      this.throwUnprocessableEntityException('Track', trackId);
+    }
+
     return this.prisma.track.update({
       where: { id: trackId },
       data: { favorite: true },
@@ -62,5 +86,14 @@ export class FavsService {
       where: { id: trackId },
       data: { favorite: false },
     });
+  }
+
+  private throwUnprocessableEntityException(
+    entityName: string,
+    entityId: string,
+  ) {
+    throw new UnprocessableEntityException(
+      `${entityName} ${entityId} is unprocessable`,
+    );
   }
 }
