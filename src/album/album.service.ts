@@ -1,98 +1,53 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ArtistService } from '../artist/artist.service';
-import { TrackService } from '../track/track.service';
-import { FavsService } from '../favs/favs.service';
-import { AlbumEntity, DTO_ARTIST_ID_FIELD } from './album.model';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
 import { CreateAlbumDto } from './dto/create.dto';
 import { UpdateAlbumDto } from './dto/update.dto';
-import {
-  getCollectionEntityIndexById,
-  validateCollectionEntity,
-} from '../app.utils';
 
 @Injectable()
 export class AlbumService {
-  albums: AlbumEntity[] = [];
-
-  constructor(
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
-    @Inject(forwardRef(() => ArtistService))
-    private artistService: ArtistService,
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   public getAllAlbums() {
-    return this.albums;
+    return this.prisma.album.findMany();
   }
 
-  public getAlbum(id: string): AlbumEntity;
-  public getAlbum(id: string[]): AlbumEntity[];
-  public getAlbum(id: string | string[]) {
-    if (typeof id === 'string') {
-      const index = getCollectionEntityIndexById(this.albums, id, 'Album');
-
-      return this.albums[index];
-    }
-
-    if (Array.isArray(id)) {
-      return this.albums.filter((album) => id.includes(album.id));
-    }
+  public async getAlbum(id: string) {
+    return await this.getAlbumEntity(id);
   }
 
   public createAlbum(dto: CreateAlbumDto) {
-    const artistId = dto[DTO_ARTIST_ID_FIELD];
+    const { name, year, artistId } = dto;
 
-    if (artistId) {
-      validateCollectionEntity(
-        this.artistService.getAllArtists(),
-        artistId,
-        'Artists',
-        DTO_ARTIST_ID_FIELD,
-      );
+    return this.prisma.album.create({
+      data: { name, year, artistId, favorite: false },
+    });
+  }
+
+  public async updateAlbum(id: string, dto: UpdateAlbumDto) {
+    const { name, year, artistId } = dto;
+
+    await this.getAlbumEntity(id);
+
+    return this.prisma.album.update({
+      where: { id },
+      data: { name, year, artistId },
+    });
+  }
+
+  public async deleteAlbum(id: string) {
+    await this.getAlbumEntity(id);
+    await this.prisma.album.delete({ where: { id } });
+  }
+
+  private async getAlbumEntity(id: string) {
+    const album = await this.prisma.album.findUnique({
+      where: { id },
+    });
+
+    if (!album) {
+      throw new NotFoundException(`Album ${id} not found`);
     }
 
-    const album = new AlbumEntity(dto);
-
-    this.albums.push(album);
-
     return album;
-  }
-
-  public updateAlbum(id: string, dto: UpdateAlbumDto) {
-    const index = getCollectionEntityIndexById(this.albums, id, 'Album');
-
-    Object.keys(dto).forEach((key) => {
-      if (key === DTO_ARTIST_ID_FIELD && dto[key] !== null) {
-        const artistId = dto[key];
-
-        validateCollectionEntity(
-          this.artistService.getAllArtists(),
-          artistId,
-          'Artists',
-          key,
-        );
-      }
-
-      this.albums[index][key] = dto[key];
-    });
-
-    return this.albums[index];
-  }
-
-  public deleteAlbum(id: string) {
-    const deletingAlbum = this.getAlbum(id);
-
-    this.albums = this.albums.filter((album) => album.id !== deletingAlbum.id);
-    this.favsService.deleteAlbumFromFavs(id);
-  }
-
-  public deleteArtistIdFromAlbums(artistId: string) {
-    this.albums.forEach((album) => {
-      if (album[DTO_ARTIST_ID_FIELD] === artistId) {
-        album[DTO_ARTIST_ID_FIELD] = null;
-      }
-    });
   }
 }
