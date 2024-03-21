@@ -10,7 +10,57 @@ import { UpdateUserDto } from './dto/update.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    this.prisma = Object.assign(
+      prisma,
+      prisma.$extends({
+        query: {
+          user: {
+            async $allOperations({ args, query }) {
+              const res = await query(args);
+
+              if (Array.isArray(res)) {
+                const modifiedArr = [];
+
+                res.forEach((user) => {
+                  if (typeof user === 'object' && user !== null) {
+                    const modifiedUser = { ...user };
+
+                    for (const [key, value] of Object.entries(modifiedUser)) {
+                      if (value instanceof Date) {
+                        (modifiedUser[
+                          key as keyof typeof modifiedUser
+                        ] as any) = value.valueOf();
+                      }
+                    }
+
+                    modifiedArr.push(modifiedUser);
+                  } else {
+                    modifiedArr.push(user);
+                  }
+                });
+
+                return modifiedArr;
+              } else if (typeof res === 'object' && res !== null) {
+                const modifiedRes = { ...res };
+
+                for (const [key, value] of Object.entries(modifiedRes)) {
+                  if (value instanceof Date) {
+                    (modifiedRes[key as keyof typeof modifiedRes] as any) =
+                      value.valueOf();
+                  }
+                }
+
+                return modifiedRes;
+              } else {
+                return res;
+              }
+            },
+          },
+        },
+      }),
+    );
+  }
 
   public getAllUsers() {
     return this.prisma.user.findMany({
