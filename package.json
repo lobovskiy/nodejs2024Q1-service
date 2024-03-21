@@ -22,6 +22,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "docker": "docker-compose up",
     "docker:audit": "docker scout recommendations home_library && docker scout recommendations hl_database && docker exec home_library npm audit",
+    "docker:test": "docker exec home_library npm run test",
     "start:db": "prisma migrate deploy && prisma generate && npm start"
   },
   "dependencies": {
