@@ -5,11 +5,20 @@ import { PrismaService } from '../database/prisma.service';
 export class FavsService {
   constructor(private prisma: PrismaService) {}
 
-  public getAllFavs() {
+  public async getAllFavs() {
     return {
-      artists: this.prisma.artist.findMany({ select: { favorite: true } }),
-      albums: this.prisma.album.findMany({ select: { favorite: true } }),
-      tracks: this.prisma.track.findMany({ select: { favorite: true } }),
+      artists: await this.prisma.artist.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Artist', ['favorite']),
+      }),
+      albums: await this.prisma.album.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Album', ['favorite']),
+      }),
+      tracks: await this.prisma.track.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Track', ['favorite']),
+      }),
     };
   }
 
