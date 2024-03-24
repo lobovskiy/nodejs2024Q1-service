@@ -10,4 +10,4 @@ COPY . /usr/src/home_library
 
 EXPOSE ${PORT}
 
-CMD ["npm", "run", "start:db"]
+CMD ["npm", "run", "start:migration"]
