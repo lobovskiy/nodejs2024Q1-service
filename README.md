@@ -45,15 +45,22 @@ Change the file name `.env.example` to `.env`
 
 ## Actions available for the application and database containers running in Docker
 
-1. To scan for vulnerabilities of docker containers and application Node.js packages:
+- To scan for vulnerabilities of docker containers and application Node.js packages:
    ```
    npm run docker:audit
    ```
    
-2. To run application tests:
+- To run application tests:
    ```
    npm run docker:test
    ```
+
+- To clear database:
+  1. Run migration reset:
+     ```
+     npx prisma migrate reset
+     ```
+  2. Confirm the reset by typing `y` into the console
 
 ## Using application
 
