@@ -1,117 +1,53 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ArtistService } from '../artist/artist.service';
-import { AlbumService } from '../album/album.service';
-import { FavsService } from '../favs/favs.service';
-import {
-  DTO_ALBUM_ID_FIELD,
-  DTO_ARTIST_ID_FIELD,
-  TrackEntity,
-} from './track.model';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create.dto';
 import { UpdateTrackDto } from './dto/update.dto';
-import {
-  getCollectionEntityIndexById,
-  validateCollectionEntity,
-  validateUuid,
-} from '../app.utils';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class TrackService {
-  private tracks: TrackEntity[] = [];
-
-  constructor(
-    @Inject(forwardRef(() => ArtistService))
-    private artistService: ArtistService,
-    @Inject(forwardRef(() => AlbumService))
-    private albumService: AlbumService,
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   public getAllTracks() {
-    return this.tracks;
+    return this.prisma.track.findMany();
   }
 
-  public getTrack(id: string): TrackEntity;
-  public getTrack(id: string[]): TrackEntity[];
-  public getTrack(id: string | string[]) {
-    if (typeof id === 'string') {
-      const index = getCollectionEntityIndexById(this.tracks, id, 'Track');
-
-      return this.tracks[index];
-    }
-
-    if (Array.isArray(id)) {
-      return this.tracks.filter((track) => id.includes(track.id));
-    }
+  public async getTrack(id: string) {
+    return await this.getTrackEntity(id);
   }
 
   public createTrack(dto: CreateTrackDto) {
-    const artistId = dto[DTO_ARTIST_ID_FIELD];
-    const albumId = dto[DTO_ALBUM_ID_FIELD];
+    const { name, artistId, albumId, duration } = dto;
 
-    if (artistId) {
-      validateCollectionEntity(
-        this.artistService.getAllArtists(),
-        artistId,
-        'Artists',
-        DTO_ARTIST_ID_FIELD,
-      );
+    return this.prisma.track.create({
+      data: { name, artistId, albumId, duration, favorite: false },
+    });
+  }
+
+  public async updateTrack(id: string, dto: UpdateTrackDto) {
+    const { name, artistId, albumId, duration } = dto;
+
+    await this.getTrackEntity(id);
+
+    return this.prisma.track.update({
+      where: { id },
+      data: { name, artistId, albumId, duration },
+    });
+  }
+
+  public async deleteTrack(id: string) {
+    await this.getTrackEntity(id);
+    await this.prisma.track.delete({ where: { id } });
+  }
+
+  private async getTrackEntity(id: string) {
+    const track = await this.prisma.track.findUnique({
+      where: { id },
+    });
+
+    if (!track) {
+      throw new NotFoundException(`Track ${id} not found`);
     }
-
-    if (albumId) {
-      validateCollectionEntity(
-        this.albumService.getAllAlbums(),
-        albumId,
-        'Albums',
-        DTO_ALBUM_ID_FIELD,
-      );
-    }
-
-    const track = new TrackEntity(dto);
-
-    this.tracks.push(track);
 
     return track;
-  }
-
-  public updateTrack(id: string, dto: UpdateTrackDto) {
-    const index = getCollectionEntityIndexById(this.tracks, id, 'Track');
-
-    Object.keys(dto).forEach((key) => {
-      if (
-        (key === DTO_ARTIST_ID_FIELD || key === DTO_ALBUM_ID_FIELD) &&
-        dto[key] !== null
-      ) {
-        validateUuid(dto[key], key);
-      }
-
-      this.tracks[index][key] = dto[key];
-    });
-
-    return this.tracks[index];
-  }
-
-  public deleteTrack(id: string) {
-    const deletingTrack = this.getTrack(id);
-
-    this.tracks = this.tracks.filter((track) => track.id !== deletingTrack.id);
-    this.favsService.deleteTrackFromFavs(id);
-  }
-
-  public deleteAlbumIdFromTracks(albumId: string) {
-    this.tracks.forEach((track) => {
-      if (track[DTO_ALBUM_ID_FIELD] === albumId) {
-        track[DTO_ALBUM_ID_FIELD] = null;
-      }
-    });
-  }
-
-  public deleteArtistIdFromTracks(artistId: string) {
-    this.tracks.forEach((track) => {
-      if (track[DTO_ARTIST_ID_FIELD] === artistId) {
-        track[DTO_ARTIST_ID_FIELD] = null;
-      }
-    });
   }
 }

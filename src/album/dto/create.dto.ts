@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { DTO_ARTIST_ID_FIELD } from '../album.model';
 
 export class CreateAlbumDto {
   @IsString()
@@ -13,5 +12,5 @@ export class CreateAlbumDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  [DTO_ARTIST_ID_FIELD]: string;
+  artistId: string;
 }

@@ -3,56 +3,127 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserEntity } from './user.model';
+import { PrismaService } from '../database/prisma.service';
+import { IUser } from './user.model';
 import { CreateUserDto } from './dto/create.dto';
 import { UpdateUserDto } from './dto/update.dto';
 
 @Injectable()
 export class UserService {
-  private users: UserEntity[] = [];
+  constructor(private prisma: PrismaService) {
+    this.prisma = Object.assign(
+      prisma,
+      prisma.$extends({
+        query: {
+          user: {
+            async $allOperations({ args, query }) {
+              const res = await query(args);
 
-  public getAllUsers() {
-    return this.users;
+              if (Array.isArray(res)) {
+                const modifiedArr = [];
+
+                res.forEach((user) => {
+                  if (typeof user === 'object' && user !== null) {
+                    const modifiedUser = { ...user };
+
+                    for (const [key, value] of Object.entries(modifiedUser)) {
+                      if (value instanceof Date) {
+                        (modifiedUser[
+                          key as keyof typeof modifiedUser
+                        ] as any) = value.valueOf();
+                      }
+                    }
+
+                    modifiedArr.push(modifiedUser);
+                  } else {
+                    modifiedArr.push(user);
+                  }
+                });
+
+                return modifiedArr;
+              } else if (typeof res === 'object' && res !== null) {
+                const modifiedRes = { ...res };
+
+                for (const [key, value] of Object.entries(modifiedRes)) {
+                  if (value instanceof Date) {
+                    (modifiedRes[key as keyof typeof modifiedRes] as any) =
+                      value.valueOf();
+                  }
+                }
+
+                return modifiedRes;
+              } else {
+                return res;
+              }
+            },
+          },
+        },
+      }),
+    );
   }
 
-  public getUser(id: string) {
-    const user = this.users.find((user) => user.id === id);
+  public getAllUsers() {
+    return this.prisma.user.findMany({
+      select: this.prisma.exclude('User', ['password']),
+    });
+  }
+
+  async getUser(id: string) {
+    return await this.getUserEntity(id, true);
+  }
+
+  public createUser(dto: CreateUserDto) {
+    const { login, password } = dto;
+    return this.prisma.user.create({
+      data: { login, password, version: 1 },
+      select: this.prisma.exclude('User', ['password']),
+    });
+  }
+
+  public async updateUser(id: string, dto: UpdateUserDto) {
+    const user = await this.getUserEntity(id);
+
+    this.checkOldPassword(user, dto.oldPassword);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { password: dto.newPassword, version: (user.version += 1) },
+      select: this.prisma.exclude('User', ['password']),
+    });
+  }
+
+  public async deleteUser(id: string) {
+    await this.getUserEntity(id);
+    await this.prisma.user.delete({ where: { id } });
+  }
+
+  private checkOldPassword(user: IUser, oldPassword: string) {
+    if (user.password !== oldPassword) {
+      throw new ForbiddenException(`Wrong old password`);
+    }
+  }
+
+  private async getUserEntity(
+    id: string,
+    excludePassword?: false,
+  ): Promise<IUser>;
+  private async getUserEntity(
+    id: string,
+    excludePassword: true,
+  ): Promise<Omit<IUser, 'password'>>;
+  private async getUserEntity(id: string, excludePassword = false) {
+    const user: IUser | Omit<IUser, 'password'> =
+      await this.prisma.user.findUnique({
+        where: { id },
+        select: excludePassword
+          ? this.prisma.exclude('User', ['password'])
+          : undefined,
+      });
 
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
     }
 
     return user;
-  }
-
-  public createUser(dto: CreateUserDto) {
-    const user = new UserEntity(dto);
-
-    this.users.push(user);
-
-    return user;
-  }
-
-  public updateUser(id: string, dto: UpdateUserDto) {
-    const user = this.getUser(id);
-
-    this.checkOldPassword(user, dto.oldPassword);
-    user.password = dto.newPassword;
-    user.version += 1;
-    user.updatedAt = new Date().getTime();
-
-    return user;
-  }
-
-  public deleteUser(id: string) {
-    const deletingUser = this.getUser(id);
-
-    this.users = this.users.filter((user) => user.id !== deletingUser.id);
-  }
-
-  private checkOldPassword(user: UserEntity, oldPassword: string) {
-    if (user.password !== oldPassword) {
-      throw new ForbiddenException(`Wrong old password`);
-    }
   }
 }
