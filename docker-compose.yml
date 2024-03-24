@@ -30,16 +30,18 @@ services:
     depends_on:
       - db
     volumes:
-      - .:/usr/src/home_library
+      - hl:/usr/src/home_library
       - node_modules:/usr/src/home_library/node_modules
     networks:
       - hl_network
 
 volumes:
   db:
-    name: hl_database_volume
+    name: db_volume
+  hl:
+    name: hl_volume
   node_modules:
-    name: hl_node_modules
+    name: node_modules_volume
 
 networks:
   hl_network:
