@@ -1,87 +1,99 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ArtistService } from '../artist/artist.service';
-import { AlbumService } from '../album/album.service';
-import { TrackService } from '../track/track.service';
-import { IFavorites } from './favs.model';
-import { validateCollectionEntity } from '../app.utils';
-import { getFavsResponseMessage } from './favs.utils';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class FavsService {
-  favorites: IFavorites = {
-    artists: [],
-    albums: [],
-    tracks: [],
-  };
+  constructor(private prisma: PrismaService) {}
 
-  constructor(
-    @Inject(forwardRef(() => ArtistService))
-    private artistService: ArtistService,
-    @Inject(forwardRef(() => AlbumService))
-    private albumService: AlbumService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
-  ) {}
-
-  public getAllFavs() {
+  public async getAllFavs() {
     return {
-      artists: this.artistService.getArtist(this.favorites.artists),
-      albums: this.albumService.getAlbum(this.favorites.albums),
-      tracks: this.trackService.getTrack(this.favorites.tracks),
+      artists: await this.prisma.artist.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Artist', ['favorite']),
+      }),
+      albums: await this.prisma.album.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Album', ['favorite']),
+      }),
+      tracks: await this.prisma.track.findMany({
+        where: { favorite: true },
+        select: this.prisma.exclude('Track', ['favorite']),
+      }),
     };
   }
 
-  public addArtistToFavs(artistId: string) {
-    validateCollectionEntity(
-      this.artistService.getAllArtists(),
-      artistId,
-      'Artists',
-    );
+  public async addArtistToFavs(artistId: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { id: artistId },
+    });
 
-    this.favorites.artists.push(artistId);
+    if (!artist) {
+      this.throwUnprocessableEntityException('Artist', artistId);
+    }
 
-    return getFavsResponseMessage('Artist', artistId);
+    return this.prisma.artist.update({
+      where: { id: artistId },
+      data: { favorite: true },
+    });
   }
 
   public deleteArtistFromFavs(artistId: string) {
-    this.favorites.artists = this.favorites.artists.filter(
-      (id) => id !== artistId,
-    );
+    return this.prisma.artist.update({
+      where: { id: artistId },
+      data: { favorite: false },
+    });
   }
 
-  public addAlbumToFavs(albumId: string) {
-    validateCollectionEntity(
-      this.albumService.getAllAlbums(),
-      albumId,
-      'Albums',
-    );
+  public async addAlbumToFavs(albumId: string) {
+    const album = await this.prisma.album.findUnique({
+      where: { id: albumId },
+    });
 
-    this.favorites.albums.push(albumId);
+    if (!album) {
+      this.throwUnprocessableEntityException('Album', albumId);
+    }
 
-    return getFavsResponseMessage('Album', albumId);
+    return this.prisma.album.update({
+      where: { id: albumId },
+      data: { favorite: true },
+    });
   }
 
   public deleteAlbumFromFavs(albumId: string) {
-    this.favorites.albums = this.favorites.albums.filter(
-      (id) => id !== albumId,
-    );
+    return this.prisma.album.update({
+      where: { id: albumId },
+      data: { favorite: false },
+    });
   }
 
-  public addTrackToFavs(trackId: string) {
-    validateCollectionEntity(
-      this.trackService.getAllTracks(),
-      trackId,
-      'Tracks',
-    );
+  public async addTrackToFavs(trackId: string) {
+    const album = await this.prisma.track.findUnique({
+      where: { id: trackId },
+    });
 
-    this.favorites.tracks.push(trackId);
+    if (!album) {
+      this.throwUnprocessableEntityException('Track', trackId);
+    }
 
-    return getFavsResponseMessage('Track', trackId);
+    return this.prisma.track.update({
+      where: { id: trackId },
+      data: { favorite: true },
+    });
   }
 
   public deleteTrackFromFavs(trackId: string) {
-    this.favorites.tracks = this.favorites.tracks.filter(
-      (id) => id !== trackId,
+    return this.prisma.track.update({
+      where: { id: trackId },
+      data: { favorite: false },
+    });
+  }
+
+  private throwUnprocessableEntityException(
+    entityName: string,
+    entityId: string,
+  ) {
+    throw new UnprocessableEntityException(
+      `${entityName} ${entityId} is unprocessable`,
     );
   }
 }

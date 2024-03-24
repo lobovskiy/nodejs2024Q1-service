@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { DTO_ALBUM_ID_FIELD, DTO_ARTIST_ID_FIELD } from '../track.model';
 
 export class CreateTrackDto {
   @IsString()
@@ -9,12 +8,12 @@ export class CreateTrackDto {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  [DTO_ARTIST_ID_FIELD]: string;
+  artistId: string;
 
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  [DTO_ALBUM_ID_FIELD]: string;
+  albumId: string;
 
   @IsNumber()
   @IsNotEmpty()
