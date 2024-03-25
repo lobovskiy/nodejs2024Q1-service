@@ -19,13 +19,6 @@ export function getCwdPath(resourcePath: string) {
   return path.join(process.cwd(), resourcePath);
 }
 
-export async function createFolder(folderPath: string) {
-  const isFolderExist = await fsPromises
-    .access(folderPath)
-    .then(() => true)
-    .catch(() => false);
-
-  if (!isFolderExist) {
-    await fsPromises.mkdir(folderPath);
-  }
+export async function ensureFolderExists(folderPath: string) {
+  await fsPromises.mkdir(folderPath, { recursive: true });
 }
