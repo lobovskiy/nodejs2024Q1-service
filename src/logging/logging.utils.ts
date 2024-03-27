@@ -1,4 +1,4 @@
-import * as fsPromises from 'fs/promises';
+import * as fs from 'fs';
 import * as path from 'path';
 
 const LOG_FILENAME_PREFIX = 'log';
@@ -13,9 +13,9 @@ export function getCurrentLogFile(logsFolderPath: string): string {
   return path.join(logsFolderPath, fileName);
 }
 
-export async function getFileSize(filePath: string): Promise<number> {
+export function getFileSize(filePath: string) {
   try {
-    const stats = await fsPromises.stat(filePath);
+    const stats = fs.statSync(filePath);
     return stats.size;
   } catch (error) {
     if (error.code === 'ENOENT') {
@@ -26,20 +26,17 @@ export async function getFileSize(filePath: string): Promise<number> {
   }
 }
 
-export async function createNewLogFile(logsFolderPath: string): Promise<void> {
+export function createNewLogFile(logsFolderPath: string) {
   const currentDate = new Date();
   const fileName = `${LOG_FILENAME_PREFIX}_${
     currentDate.toISOString().split('T')[0]
   }_${currentDate.getTime()}.txt`;
   const newLogFile = path.join(logsFolderPath, fileName);
-  await fsPromises.writeFile(newLogFile, ''); // Create an empty log file
+  fs.writeFileSync(newLogFile, ''); // Create an empty log file
 }
 
-export async function appendMessageToFile(
-  filePath: string,
-  message: string,
-): Promise<void> {
-  await fsPromises.appendFile(filePath, `${message}\n`);
+export function appendMessageToFile(filePath: string, message: string) {
+  fs.appendFileSync(filePath, `${message}\n`, { flag: 'a' });
 }
 
 export function getLogMessageCreator(appName: string, pid: number) {

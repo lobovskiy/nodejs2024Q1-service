@@ -22,3 +22,7 @@ export function getCwdPath(resourcePath: string) {
 export async function ensureFolderExists(folderPath: string) {
   await fsPromises.mkdir(folderPath, { recursive: true });
 }
+
+export function ensureFolderExistsSync(folderPath: string) {
+  fs.mkdirSync(folderPath, { recursive: true });
+}

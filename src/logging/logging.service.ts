@@ -1,6 +1,6 @@
 import * as process from 'process';
 import { Injectable, LoggerService } from '@nestjs/common';
-import { ensureFolderExists, getCwdPath } from '../app.utils';
+import { ensureFolderExistsSync, getCwdPath } from '../app.utils';
 import { APP_NAME, LOGGING_LEVELS, LOGS_FOLDER_PATH } from '../app.constants';
 import {
   appendMessageToFile,
@@ -32,7 +32,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.blue(logMessage);
-      await this.writeToLogFile(logMessage);
+      this.writeToLogFile(logMessage);
     }
   }
 
@@ -47,7 +47,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.red(logMessage);
-      await this.writeToLogFile(message);
+      this.writeToLogFile(message);
     }
   }
 
@@ -62,7 +62,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.yellow(logMessage);
-      await this.writeToLogFile(message);
+      this.writeToLogFile(message);
     }
   }
 
@@ -77,11 +77,11 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.green(logMessage);
-      await this.writeToLogFile(message);
+      this.writeToLogFile(message);
     }
   }
 
-  public async verbose(message: string, ...optionalParams: any[]) {
+  public async verbose?(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Verbose) {
       const datetime = new Date().toLocaleString('ru-RU');
       const logMessage = this.createLogMessage(
@@ -92,7 +92,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.green(logMessage);
-      await this.writeToLogFile(message);
+      this.writeToLogFile(message);
     }
   }
 
@@ -112,16 +112,16 @@ export class LoggingService implements LoggerService {
     }
   }
 
-  private async writeToLogFile(message: string) {
-    await ensureFolderExists(this.logsFolderPath);
+  private writeToLogFile(message: string) {
+    ensureFolderExistsSync(this.logsFolderPath);
 
     const currentLogFile = getCurrentLogFile(this.logsFolderPath);
-    const currentLogFileSize = await getFileSize(currentLogFile);
+    const currentLogFileSize = getFileSize(currentLogFile);
 
     if (currentLogFileSize >= this.maxLogFileSize) {
-      await createNewLogFile(this.logsFolderPath);
+      createNewLogFile(this.logsFolderPath);
     }
 
-    await appendMessageToFile(currentLogFile, message);
+    appendMessageToFile(currentLogFile, message);
   }
 }
