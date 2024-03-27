@@ -1,7 +1,7 @@
 import * as process from 'process';
 import { Injectable, LoggerService } from '@nestjs/common';
 import { ensureFolderExistsSync, getCwdPath } from '../app.utils';
-import { APP_NAME, LOGGING_LEVELS, LOGS_FOLDER_PATH } from '../app.constants';
+import { APP_NAME, LOGS_FOLDER_PATH } from '../app.constants';
 import {
   appendMessageToFile,
   createNewLogFile,
@@ -10,6 +10,7 @@ import {
   getLogMessageCreator,
   logToConsoleInColor,
 } from './logging.utils';
+import { LOGGING_LEVELS } from './logging.constants';
 
 @Injectable()
 export class LoggingService implements LoggerService {
