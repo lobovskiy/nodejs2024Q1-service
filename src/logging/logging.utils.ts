@@ -4,11 +4,24 @@ import * as path from 'path';
 const LOG_FILENAME_PREFIX = 'log';
 const LOGGING_COLOR_RESET = '\x1b[0m';
 
-export function getCurrentLogFile(logsFolderPath: string): string {
-  const currentDate = new Date();
-  const fileName = `${LOG_FILENAME_PREFIX}_${
-    currentDate.toISOString().split('T')[0]
-  }.txt`;
+function getCurrentLocalDate() {
+  const date = new Date();
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+}
+
+export function getCurrentLogFile(logsFolderPath: string) {
+  let fileName: string;
+  const currentLocalDate = getCurrentLocalDate();
+  const currentIsoStringDate = currentLocalDate.toISOString().split('T')[0];
+  const todayLogsFiles = fs
+    .readdirSync(logsFolderPath)
+    .filter((file) => file.includes(currentIsoStringDate));
+
+  if (!todayLogsFiles.length) {
+    fileName = `${LOG_FILENAME_PREFIX}_${currentIsoStringDate}.txt`;
+  } else {
+    fileName = todayLogsFiles.sort().at(-1);
+  }
 
   return path.join(logsFolderPath, fileName);
 }
@@ -27,12 +40,12 @@ export function getFileSize(filePath: string) {
 }
 
 export function createNewLogFile(logsFolderPath: string) {
-  const currentDate = new Date();
-  const fileName = `${LOG_FILENAME_PREFIX}_${
-    currentDate.toISOString().split('T')[0]
-  }_${currentDate.getTime()}.txt`;
+  const currentLocalDate = getCurrentLocalDate();
+  const currentIsoStringDate = currentLocalDate.toISOString().split('T')[0];
+  const fileName = `${LOG_FILENAME_PREFIX}_${currentIsoStringDate}_${new Date().getTime()}.txt`;
   const newLogFile = path.join(logsFolderPath, fileName);
-  fs.writeFileSync(newLogFile, ''); // Create an empty log file
+
+  fs.writeFileSync(newLogFile, '');
 }
 
 export function appendMessageToFile(filePath: string, message: string) {
