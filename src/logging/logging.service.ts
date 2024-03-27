@@ -23,7 +23,7 @@ export class LoggingService implements LoggerService {
 
   public async log(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Log) {
-      const datetime = new Date().toLocaleString('ru-RU');
+      const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
         datetime,
         'LOG',
@@ -38,7 +38,7 @@ export class LoggingService implements LoggerService {
 
   public async error(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Error) {
-      const datetime = new Date().toLocaleString('ru-RU');
+      const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
         datetime,
         'ERR',
@@ -53,7 +53,7 @@ export class LoggingService implements LoggerService {
 
   public async warn(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Warn) {
-      const datetime = new Date().toLocaleString('ru-RU');
+      const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
         datetime,
         'WARN',
@@ -68,7 +68,7 @@ export class LoggingService implements LoggerService {
 
   public async debug?(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Debug) {
-      const datetime = new Date().toLocaleString('ru-RU');
+      const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
         datetime,
         'DEBUG',
@@ -83,7 +83,7 @@ export class LoggingService implements LoggerService {
 
   public async verbose?(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Verbose) {
-      const datetime = new Date().toLocaleString('ru-RU');
+      const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
         datetime,
         'VERBOSE',
@@ -123,5 +123,9 @@ export class LoggingService implements LoggerService {
     }
 
     appendMessageToFile(currentLogFile, message);
+  }
+
+  private getLogDatetime() {
+    return new Date().toLocaleString('ru-RU');
   }
 }
