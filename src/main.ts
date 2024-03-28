@@ -11,6 +11,7 @@ import {
   YAML_DOC_PATH,
 } from './app.constants';
 import { LoggingService } from './logging/logging.service';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useLogger(loggingService);
   await app.listen(process.env.PORT || 4000);
 }
