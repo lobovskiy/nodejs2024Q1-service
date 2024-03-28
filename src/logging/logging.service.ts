@@ -22,7 +22,7 @@ export class LoggingService implements LoggerService {
 
   private createLogMessage = getLogMessageCreator(APP_NAME, process.pid);
 
-  public async log(message: string, ...optionalParams: any[]) {
+  public log(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Log) {
       const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
@@ -37,7 +37,7 @@ export class LoggingService implements LoggerService {
     }
   }
 
-  public async error(message: string, ...optionalParams: any[]) {
+  public error(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Error) {
       const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
@@ -52,7 +52,7 @@ export class LoggingService implements LoggerService {
     }
   }
 
-  public async warn(message: string, ...optionalParams: any[]) {
+  public warn(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Warn) {
       const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
@@ -67,7 +67,7 @@ export class LoggingService implements LoggerService {
     }
   }
 
-  public async debug?(message: string, ...optionalParams: any[]) {
+  public debug?(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Debug) {
       const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
@@ -82,7 +82,7 @@ export class LoggingService implements LoggerService {
     }
   }
 
-  public async verbose?(message: string, ...optionalParams: any[]) {
+  public verbose?(message: string, ...optionalParams: any[]) {
     if (this.level >= LOGGING_LEVELS.Verbose) {
       const datetime = this.getLogDatetime();
       const logMessage = this.createLogMessage(
@@ -98,18 +98,16 @@ export class LoggingService implements LoggerService {
   }
 
   public async logUncaughtException(error: Error) {
-    await this.error(
+    this.error(
       `Uncaught exception ${error.name}: ${error.message}\n${error.stack}`,
     );
   }
 
   public async logUnhandledRejection(reason: unknown) {
     if (reason instanceof Error) {
-      await this.error(
-        `Unhandled rejection: ${reason.message}\n${reason.stack}`,
-      );
+      this.error(`Unhandled rejection: ${reason.message}\n${reason.stack}`);
     } else {
-      await this.error(`Unhandled rejection: ${reason.toString()}`);
+      this.error(`Unhandled rejection: ${reason.toString()}`);
     }
   }
 
