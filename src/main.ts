@@ -16,10 +16,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 dotenv.config();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    bufferLogs: true,
-    logger: ['error', 'warn', 'log'],
-  });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const swaggerDocument = await getYamlDocument(YAML_DOC_PATH);
   const loggingService = app.get(LoggingService);
   const logsFolderPath = getCwdPath(LOGS_FOLDER_PATH);
