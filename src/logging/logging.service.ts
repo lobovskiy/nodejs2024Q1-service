@@ -16,9 +16,9 @@ import { LOGGING_LEVELS } from './logging.constants';
 export class LoggingService implements LoggerService {
   private logsFolderPath = getCwdPath(LOGS_FOLDER_PATH);
 
-  private maxLogFileSize = Number(process.env.MAX_FILE_SIZE_BYTES) || 10000;
-
   private level = Number(process.env.LOGGING_LEVEL ?? 2);
+
+  private maxLogFileSize = Number(process.env.MAX_LOG_FILE_SIZE_BYTES) || 10000;
 
   private createLogMessage = getLogMessageCreator(APP_NAME, process.pid);
 
