@@ -17,15 +17,13 @@ export class AuthService {
   ) {}
 
   public async signup(authDto: AuthDto) {
-    const { login, password } = authDto;
+    const { login } = authDto;
 
-    const hash = await this.hashData(password);
-    const user = await this.userService.createUser({
-      ...authDto,
-      password: hash,
-    });
+    const user = await this.userService.createUser(authDto);
 
-    return await this.getUserTokens(user.id, login);
+    await this.getUserTokens(user.id, login);
+
+    return user;
   }
 
   public async login(authDto: AuthDto) {
@@ -60,12 +58,6 @@ export class AuthService {
     }
 
     return await this.getUserTokens(user.id, user.login);
-  }
-
-  private async hashData(data: string) {
-    const salt = Number(process.env.CRYPT_SALT);
-
-    return await bcrypt.hash(data, salt);
   }
 
   private async getUserTokens(userId: string, login: string) {
