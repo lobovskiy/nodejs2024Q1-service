@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,7 @@ import { PrismaService } from '../database/prisma.service';
 import { IUser } from './user.model';
 import { CreateUserDto } from './dto/create.dto';
 import { UpdateUserDto } from './dto/update.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -72,22 +74,37 @@ export class UserService {
     return await this.getUserEntity(id, true);
   }
 
-  public createUser(dto: CreateUserDto) {
+  public findUserByLogin(login: string) {
+    return this.prisma.user.findUnique({ where: { login } });
+  }
+
+  public async createUser(dto: CreateUserDto) {
     const { login, password } = dto;
+    const candidate = await this.findUserByLogin(login);
+
+    if (candidate) {
+      throw new BadRequestException(`User ${login} already exists`);
+    }
+
+    const hashedPassword = await this.hashPassword(password);
+
     return this.prisma.user.create({
-      data: { login, password, version: 1 },
+      data: { login, password: hashedPassword, version: 1 },
       select: this.prisma.exclude('User', ['password']),
     });
   }
 
   public async updateUser(id: string, dto: UpdateUserDto) {
+    const { oldPassword, newPassword } = dto;
     const user = await this.getUserEntity(id);
 
-    this.checkOldPassword(user, dto.oldPassword);
+    await this.checkOldPassword(user.password, oldPassword);
+
+    const hashedNewPassword = await this.hashPassword(newPassword);
 
     return this.prisma.user.update({
       where: { id },
-      data: { password: dto.newPassword, version: (user.version += 1) },
+      data: { password: hashedNewPassword, version: (user.version += 1) },
       select: this.prisma.exclude('User', ['password']),
     });
   }
@@ -97,10 +114,27 @@ export class UserService {
     await this.prisma.user.delete({ where: { id } });
   }
 
-  private checkOldPassword(user: IUser, oldPassword: string) {
-    if (user.password !== oldPassword) {
+  public async updateUserRefreshToken(userId: string, refreshToken: string) {
+    await this.getUserEntity(userId);
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken },
+    });
+  }
+
+  private async checkOldPassword(currentPassword: string, oldPassword: string) {
+    const passwordMatches = await bcrypt.compare(oldPassword, currentPassword);
+
+    if (!passwordMatches) {
       throw new ForbiddenException(`Wrong old password`);
     }
+  }
+
+  private async hashPassword(password: string) {
+    const salt = Number(process.env.CRYPT_SALT);
+
+    return await bcrypt.hash(password, salt);
   }
 
   private async getUserEntity(
