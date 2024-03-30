@@ -15,7 +15,11 @@ export class LoggingMiddleware implements NestMiddleware {
         query,
       )}, body: ${JSON.stringify(body)} - ${statusCode}`;
 
-      this.loggingService.log(message, 'LoggingMiddleware');
+      if (statusCode >= 400) {
+        this.loggingService.error(message, 'LoggingMiddleware');
+      } else {
+        this.loggingService.log(message, 'LoggingMiddleware');
+      }
     });
 
     if (next) {
