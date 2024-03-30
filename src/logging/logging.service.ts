@@ -48,7 +48,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.red(logMessage);
-      this.writeToLogFile(message, 'error');
+      this.writeToLogFile(logMessage, 'error');
     }
   }
 
@@ -63,7 +63,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.yellow(logMessage);
-      this.writeToLogFile(message, 'warn');
+      this.writeToLogFile(logMessage, 'warn');
     }
   }
 
@@ -78,7 +78,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.green(logMessage);
-      this.writeToLogFile(message, 'debug');
+      this.writeToLogFile(logMessage, 'debug');
     }
   }
 
@@ -93,7 +93,7 @@ export class LoggingService implements LoggerService {
       );
 
       logToConsoleInColor.green(logMessage);
-      this.writeToLogFile(message, 'verbose');
+      this.writeToLogFile(logMessage, 'verbose');
     }
   }
 
@@ -118,7 +118,7 @@ export class LoggingService implements LoggerService {
     const currentLogFileSize = getFileSize(currentLogFile);
 
     if (currentLogFileSize >= this.maxLogFileSize) {
-      createNewLogFile(this.logsFolderPath);
+      createNewLogFile(this.logsFolderPath, logType);
     }
 
     appendMessageToFile(currentLogFile, message);

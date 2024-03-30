@@ -17,7 +17,9 @@ export function getCurrentLogFile(logsFolderPath: string, logType?: string) {
     .readdirSync(logsFolderPath)
     .filter((file) =>
       file.includes(
-        logType ? `${logType}_${currentIsoStringDate}` : currentIsoStringDate,
+        logType
+          ? `${LOG_FILENAME_PREFIX}-${logType}_${currentIsoStringDate}`
+          : `${LOG_FILENAME_PREFIX}_${currentIsoStringDate}`,
       ),
     );
 
@@ -45,10 +47,12 @@ export function getFileSize(filePath: string) {
   }
 }
 
-export function createNewLogFile(logsFolderPath: string) {
+export function createNewLogFile(logsFolderPath: string, logType?: string) {
   const currentLocalDate = getCurrentLocalDate();
   const currentIsoStringDate = currentLocalDate.toISOString().split('T')[0];
-  const fileName = `${LOG_FILENAME_PREFIX}_${currentIsoStringDate}_${new Date().getTime()}.txt`;
+  const fileName = `${LOG_FILENAME_PREFIX}${
+    logType ? `-${logType}` : ''
+  }_${currentIsoStringDate}_${new Date().getTime()}.txt`;
   const newLogFile = path.join(logsFolderPath, fileName);
 
   fs.writeFileSync(newLogFile, '');
