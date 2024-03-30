@@ -9,16 +9,22 @@ function getCurrentLocalDate() {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
 }
 
-export function getCurrentLogFile(logsFolderPath: string) {
+export function getCurrentLogFile(logsFolderPath: string, logType?: string) {
   let fileName: string;
   const currentLocalDate = getCurrentLocalDate();
   const currentIsoStringDate = currentLocalDate.toISOString().split('T')[0];
   const todayLogsFiles = fs
     .readdirSync(logsFolderPath)
-    .filter((file) => file.includes(currentIsoStringDate));
+    .filter((file) =>
+      file.includes(
+        logType ? `${logType}_${currentIsoStringDate}` : currentIsoStringDate,
+      ),
+    );
 
   if (!todayLogsFiles.length) {
-    fileName = `${LOG_FILENAME_PREFIX}_${currentIsoStringDate}.txt`;
+    fileName = `${LOG_FILENAME_PREFIX}${
+      logType ? `-${logType}` : ''
+    }_${currentIsoStringDate}.txt`;
   } else {
     fileName = todayLogsFiles.sort().at(-1);
   }
