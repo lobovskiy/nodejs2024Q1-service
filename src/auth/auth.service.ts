@@ -17,13 +17,7 @@ export class AuthService {
   ) {}
 
   public async signup(authDto: AuthDto) {
-    const { login } = authDto;
-
-    const user = await this.userService.createUser(authDto);
-
-    await this.getUserTokens(user.id, login);
-
-    return user;
+    return await this.userService.createUser(authDto);
   }
 
   public async login(authDto: AuthDto) {
