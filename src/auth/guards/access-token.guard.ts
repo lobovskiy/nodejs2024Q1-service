@@ -31,15 +31,15 @@ export class AccessTokenGuard
     }
 
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const accessToken = this.extractTokenFromHeader(request);
 
-    if (!token) {
+    if (!accessToken) {
       throw new UnauthorizedException();
     }
 
     try {
-      request['user'] = await this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET_REFRESH_KEY,
+      request['user'] = await this.jwtService.verifyAsync(accessToken, {
+        secret: process.env.JWT_SECRET_KEY,
       });
     } catch (e) {
       throw new UnauthorizedException();
