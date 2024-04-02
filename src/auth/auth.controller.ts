@@ -4,7 +4,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  UnauthorizedException,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -38,11 +37,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   refreshTokens(
-    @Body(
-      new ValidationPipe({
-        exceptionFactory: () => new UnauthorizedException(),
-      }),
-    )
+    @Body()
     dto: RefreshDto,
   ) {
     return this.authService.refresh(dto.refreshToken);
