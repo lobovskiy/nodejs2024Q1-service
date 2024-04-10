@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: hl_database
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    build:
+      dockerfile: ./db.Dockerfile
+    image: hl_database
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - hl_network
+
+  hl:
+    container_name: home_library
+    ports:
+      - ${PORT}:${PORT}
+    build:
+      dockerfile: ./hl.Dockerfile
+    image: home_library
+    env_file: .env
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - hl:/usr/src/home_library
+      - node_modules:/usr/src/home_library/node_modules
+    networks:
+      - hl_network
+
+volumes:
+  db:
+    name: db_volume
+  hl:
+    name: hl_volume
+  node_modules:
+    name: node_modules_volume
+
+networks:
+  hl_network:
+    external: false
+    driver: bridge

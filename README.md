@@ -1,38 +1,70 @@
 # Home Library Service
 
 This service allows you to manage lists of artists, albums and tracks.
-Also, you can add them all to the favorites list and delete them from it.
+Also, you can add them all to the favorite list and delete them from it.
 
 ## Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker - [Download & Install Docker](https://docs.docker.com/engine/install/).
 
-## Downloading
+## Download
 
 ```
 git clone https://github.com/lobovskiy/nodejs2024Q1-service.git
 ```
 
-## Setup environment config 
-
-Change the file name `.env.example` to `.env`
-
-## Installing NPM modules
+## Install NPM modules
 
 ```
 npm install
 ```
 
-## Running application
+## Setup environment config
 
-```
-npm start
-```
+Change the file name `.env.example` to `.env`
+
+## Run the application and database Docker containers
+
+1. Start Docker Desktop
+2. Run the application and database containers:
+   ```
+   npm run docker
+   ```
+3. To stop the containers press `Ctrl + C` or press the "Stop" buttons for each container in the Docker Desktop interface.
+
+#### After the database Docker container is built and is running, you can run the application directly from this repository:
+
+1. Make sure the application container is stopped, or stop it using the Docker Desktop interface
+2. Make sure the database container is running, or run it using the Docker Desktop interface
+3. Start the application from the repository:
+   - to start in dev mode: `npm run start:dev`
+   - to start in prod mode: `npm run start:prod`
+
+
+## Actions available for the application and database containers running in Docker
+
+- To scan for vulnerabilities of docker containers and application Node.js packages:
+   ```
+   npm run docker:audit
+   ```
+   
+- To run application tests:
+   ```
+   npm run docker:test
+   ```
+
+- To clear database:
+  1. Run migration reset:
+     ```
+     npx prisma migrate reset
+     ```
+  2. Confirm the reset by typing `y` into the console
 
 ## Using application
 
-After starting the app on port (4000 as default) you can open
+After starting the app on port (4000 as default), you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
@@ -80,7 +112,8 @@ to interact with all the API endpoints.
 
 ## Testing
 
-After application running open new terminal and enter:
+After application running directly from the repository using `npm run start:dev` or `npm run start:prod`,
+open new terminal and enter:
 
 To run all tests without authorization
 
@@ -94,7 +127,7 @@ To run only one of all test suites
 npm run test -- <path to suite>
 ```
 
-To run all test with authorization
+To run all tests with authorization
 
 ```
 npm run test:auth
