@@ -1,28 +1,42 @@
+import * as process from 'process';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
-import { format } from 'path';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
-import { getYamlDocument } from './app.utils';
-import { ValidationPipe } from '@nestjs/common';
+import { ensureFolderExists, getCwdPath, getYamlDocument } from './app.utils';
+import {
+  LOGS_FOLDER_PATH,
+  SWAGGER_MODULE_PATH,
+  YAML_DOC_PATH,
+} from './app.constants';
+import { LoggingService } from './logging/logging.service';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 dotenv.config();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const swaggerDocument = await getYamlDocument(YAML_DOC_PATH);
+  const loggingService = app.get(LoggingService);
+  const logsFolderPath = getCwdPath(LOGS_FOLDER_PATH);
+
+  SwaggerModule.setup(SWAGGER_MODULE_PATH, app, swaggerDocument);
+
+  await ensureFolderExists(logsFolderPath);
+
+  process.on('uncaughtException', (error) => {
+    loggingService.logUncaughtException(error);
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason) => {
+    loggingService.logUnhandledRejection(reason);
+    process.exit(1);
+  });
 
   app.useGlobalPipes(new ValidationPipe());
-
-  const swaggerYamlDocumentPath = format({
-    root: '/',
-    dir: process.env.DOC_FOLDER_NAME || 'doc',
-    base: process.env.DOC_FILE_NAME || 'api.yaml',
-  });
-  const swaggerDocument = await getYamlDocument(swaggerYamlDocumentPath);
-  const SWAGGER_UI_PATH = 'doc';
-
-  SwaggerModule.setup(SWAGGER_UI_PATH, app, swaggerDocument);
-
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useLogger(loggingService);
   await app.listen(process.env.PORT || 4000);
 }
 bootstrap();

@@ -32,6 +32,7 @@ services:
     volumes:
       - hl:/usr/src/home_library
       - node_modules:/usr/src/home_library/node_modules
+      - logs:/usr/src/home_library/logs
     networks:
       - hl_network
 
@@ -42,6 +43,8 @@ volumes:
     name: hl_volume
   node_modules:
     name: node_modules_volume
+  logs:
+    name: logs_volume
 
 networks:
   hl_network:
