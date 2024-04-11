@@ -25,7 +25,8 @@
     "docker": "docker-compose up",
     "docker:audit": "docker scout recommendations home_library && docker scout recommendations hl_database && docker exec home_library npm audit",
     "docker:test": "docker exec home_library npm run test",
-    "docker:test:auth": "docker exec home_library npm run test:auth"
+    "docker:test:auth": "docker exec home_library npm run test:auth",
+    "docker:test:refresh": "docker exec home_library npm run test:refresh"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
