@@ -73,6 +73,11 @@ to interact with all the API endpoints.
 
 ## API
 
+* `Authorization` (`/auth` route)
+  * `POST /auth/signup` - send `login` and `password` to create a new `user`
+  * `POST /auth/login` - send `login` and `password` to get Access token and Refresh token
+  * `POST /auth/refresh` - send refresh token in body as `{ refreshToken }` to get a new pair of Access token and Refresh token
+
 * `Users` (`/user` route)
     * `GET /user` - get all users
     * `GET /user/:id` - get single user by id

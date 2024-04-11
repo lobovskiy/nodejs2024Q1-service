@@ -1,4 +1,7 @@
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
+import * as path from 'path';
+import * as process from 'process';
 import * as yaml from 'js-yaml';
 import { OpenAPIObject } from '@nestjs/swagger';
 
@@ -10,4 +13,16 @@ export async function getYamlDocument(
   } catch (error) {
     throw error;
   }
+}
+
+export function getCwdPath(resourcePath: string) {
+  return path.join(process.cwd(), resourcePath);
+}
+
+export async function ensureFolderExists(folderPath: string) {
+  await fsPromises.mkdir(folderPath, { recursive: true });
+}
+
+export function ensureFolderExistsSync(folderPath: string) {
+  fs.mkdirSync(folderPath, { recursive: true });
 }
